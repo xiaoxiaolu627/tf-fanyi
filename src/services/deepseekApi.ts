@@ -62,6 +62,11 @@ ${replyStyle}
 }
 
 export async function translateMessage(request: TranslationRequest): Promise<TranslationResponse> {
+  // 检查 API 密钥是否配置
+  if (!API_CONFIG.DEEPSEEK_API_KEY) {
+    throw new Error('DeepSeek API 密钥未配置。请联系管理员设置环境变量 VITE_DEEPSEEK_API_KEY');
+  }
+
   try {
     const response = await fetch('https://api.deepseek.com/chat/completions', {
       method: 'POST',

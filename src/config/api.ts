@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  DEEPSEEK_API_KEY: 'sk-12ac7ba82bb3416d828af262d5c82488',
+  DEEPSEEK_API_KEY: import.meta.env.VITE_DEEPSEEK_API_KEY || '',
   DEEPSEEK_BASE_URL: 'https://api.deepseek.com',
   MODEL_NAME: 'deepseek-chat'
 } as const;
