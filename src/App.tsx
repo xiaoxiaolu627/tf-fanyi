@@ -7,6 +7,7 @@ import { TranslationResult } from './components/TranslationResult';
 import { ReplySuggestions } from './components/ReplySuggestions';
 import { ConversationHistory } from './components/ConversationHistory';
 import { UsageGuide } from './components/UsageGuide';
+import { NetworkStatus } from './components/NetworkStatus';
 import { translateMessage } from './services/deepseekApi';
 import type { TranslationResponse } from './config/api';
 
@@ -204,6 +205,9 @@ function App() {
 
         {/* 使用指南 */}
         <UsageGuide />
+
+        {/* 网络状态检测 */}
+        <NetworkStatus />
 
         <style>{`
         .custom-scrollbar::-webkit-scrollbar {
