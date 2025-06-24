@@ -54,7 +54,7 @@ export const NetworkStatus: React.FC = () => {
           <div className="text-sm">
             <p className="font-medium mb-1">网络提示</p>
             <p className="text-xs opacity-90">
-              如果页面加载较慢，建议使用科学上网工具或等待网络环境改善
+              Vercel 在国内可能需要科学上网才能正常访问。如需稳定使用，建议联系开发者获取国内版本。
             </p>
           </div>
           <button
