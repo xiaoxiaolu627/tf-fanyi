@@ -1,17 +1,21 @@
 import React from 'react';
 import { Brain, Heart, Zap } from 'lucide-react';
+import { Language, translations } from '../config/i18n';
 
 interface TypeSelectorProps {
   label: string;
   selectedType: 'T' | 'F';
   onTypeChange: (type: 'T' | 'F') => void;
+  language: Language;
 }
 
 export const TypeSelector: React.FC<TypeSelectorProps> = ({
   label,
   selectedType,
   onTypeChange,
+  language,
 }) => {
+  const t = translations[language];
   return (
     <div className="space-y-3">
       <label className="text-sm font-semibold text-gray-200 flex items-center gap-2">
@@ -38,7 +42,7 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
             }`}
           >
             <Brain size={16} className={selectedType === 'T' ? 'text-emerald-400' : 'text-gray-500'} />
-            T型 (思考)
+            {t.tType}
           </button>
           <button
             onClick={() => onTypeChange('F')}
@@ -49,7 +53,7 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
             }`}
           >
             <Heart size={16} className={selectedType === 'F' ? 'text-amber-400' : 'text-gray-500'} />
-            F型 (情感)
+            {t.fType}
           </button>
         </div>
       </div>

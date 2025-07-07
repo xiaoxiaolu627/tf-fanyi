@@ -8,6 +8,7 @@ export interface TranslationRequest {
   message: string;
   selfType: 'T' | 'F';
   targetType: 'T' | 'F';
+  language?: 'zh' | 'en';
 }
 
 export interface TranslationResponse {

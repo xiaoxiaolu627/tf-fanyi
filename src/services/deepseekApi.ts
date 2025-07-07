@@ -1,4 +1,5 @@
 import { API_CONFIG, TranslationRequest, TranslationResponse } from '../config/api';
+import { Language } from '../config/i18n';
 
 const TYPE_DESCRIPTIONS = {
   T: {
@@ -13,7 +14,14 @@ const TYPE_DESCRIPTIONS = {
   }
 };
 
-function buildPrompt(message: string, selfType: 'T' | 'F', targetType: 'T' | 'F'): string {
+function buildPrompt(message: string, selfType: 'T' | 'F', targetType: 'T' | 'F', language: Language = 'zh'): string {
+  if (language === 'en') {
+    return buildEnglishPrompt(message, selfType, targetType);
+  }
+  return buildChinesePrompt(message, selfType, targetType);
+}
+
+function buildChinesePrompt(message: string, selfType: 'T' | 'F', targetType: 'T' | 'F'): string {
   const targetDesc = TYPE_DESCRIPTIONS[targetType];
   const selfDesc = TYPE_DESCRIPTIONS[selfType];
   
@@ -21,42 +29,120 @@ function buildPrompt(message: string, selfType: 'T' | 'F', targetType: 'T' | 'F'
     ? '用逻辑和事实来解释，重点说明对方的真实需求和担心的问题'
     : '用情感和感受来解释，重点说明对方的内心感受和人际关系考虑';
   
-  const replyStyle = targetType === 'T'
-    ? '要具体、直接、有逻辑，提供实际的解决方案'
-    : '要温暖、体贴、有同理心，表达理解和关心';
+  // 更自然的回复风格指导
+  const replyExamples = targetType === 'T' 
+    ? {
+        style: '直接、简洁、实用',
+        examples: [
+          '简短确认："好的，我来处理"',
+          '解决问题："我理解你的担心，咱们这样..."',
+          '务实回应："确实，那我们就..."'
+        ]
+      }
+    : {
+        style: '温暖、关心、有感情',
+        examples: [
+          '共情理解："我明白你的感受，我也会这样想"',
+          '表达感谢："谢谢你告诉我这些"',
+          '主动关心："你辛苦了，需要我帮什么吗？"'
+        ]
+      };
 
-  return `你是一个很懂人心的沟通翻译官。有人说了一句话，但听的人没完全理解对方的真正意思，需要你来"翻译"一下。
+  return `你是一个很懂人际关系的朋友，在帮两个朋友更好地理解对方。
 
-**现在的情况：**
-- 说话的人：${targetDesc.name}（${targetDesc.characteristics}）
-- 听话的人：${selfDesc.name}（${selfDesc.characteristics}）
+**情况：**
+对方是${targetDesc.name}，${targetDesc.characteristics}
+我是${selfDesc.name}，${selfDesc.characteristics}
 
-**对方说的原话：**
+**对方说的话：**
 "${message}"
 
-**你要做的事：**
-1. 翻译：告诉听话的人，对方这句话背后真正想表达什么意思、什么感受、什么需求
-2. 建议：提供3个回复方式，让听话的人能用对方容易接受的方式回应
+**帮我做两件事：**
 
-**翻译的风格：**
-${translationStyle}
+1. **翻译**：用${translationStyle}，告诉我对方话里的真正意思
 
-**回复建议的风格：**
-${replyStyle}
+2. **教我怎么回**：给我3个自然的回复，要像平时聊天一样，${replyExamples.style}
 
-**重要提醒：**
-- 用大白话，不要官方语言
-- 要像你真的认识这两个人，了解他们的性格
-- 翻译要让人恍然大悟："原来是这样！"
-- 建议要实用，就像朋友之间的聊天建议
+**回复要求：**
+- 就像你平时和朋友聊天那样自然，带点口语化
+- 不要太正式，不要像客服或官方回复
+- 3个回复要有不同的长度和语气：一个简短、一个中等、一个详细
+- 可以用"嗯"、"哦"、"好吧"、"是吗"等自然的语气词
+- 参考这种感觉：${replyExamples.examples.join('、')}
+- 避免"我觉得"、"我建议"、"您"等过于正式的表达
 
-**输出格式（必须是纯JSON）：**
+**重要：输出严格的JSON格式，不要在字符串中使用引号，用其他标点替代**
 {
-  "translation": "对方其实想说...",
+  "translation": "TA其实想表达的真正意思...",
   "suggestions": [
-    "建议回复1",
-    "建议回复2", 
-    "建议回复3"
+    "具体的回复1",
+    "具体的回复2", 
+    "具体的回复3"
+  ]
+}`;
+}
+
+function buildEnglishPrompt(message: string, selfType: 'T' | 'F', targetType: 'T' | 'F'): string {
+  const targetDesc = selfType === 'T' 
+    ? { name: 'Rational Thinker', characteristics: 'focuses on logic, facts, and efficiency, speaks directly' }
+    : { name: 'Emotional Feeler', characteristics: 'cares about feelings and relationships, considers emotions when speaking' };
+  
+  const selfDesc = targetType === 'T'
+    ? { name: 'Rational Thinker', characteristics: 'focuses on logic, facts, and efficiency, speaks directly' }
+    : { name: 'Emotional Feeler', characteristics: 'cares about feelings and relationships, considers emotions when speaking' };
+  
+  const translationStyle = selfType === 'T' 
+    ? 'using logic and facts, focus on their real needs and concerns'
+    : 'using emotions and feelings, focus on their inner feelings and relationship considerations';
+  
+  const replyExamples = targetType === 'T' 
+    ? {
+        style: 'direct, concise, practical',
+        examples: [
+          'Brief confirmation: "Got it, I\'ll handle this"',
+          'Problem-solving: "I understand your concern, let\'s..."',
+          'Practical response: "Right, so we should..."'
+        ]
+      }
+    : {
+        style: 'warm, caring, emotional',
+        examples: [
+          'Empathetic understanding: "I get how you feel, I\'d think the same"',
+          'Expressing gratitude: "Thanks for telling me this"',
+          'Proactive care: "You\'ve been working hard, need any help?"'
+        ]
+      };
+
+  return `You are a friend who understands interpersonal relationships well, helping two friends better understand each other.
+
+**Situation:**
+The speaker is a ${targetDesc.name}, ${targetDesc.characteristics}
+I am a ${selfDesc.name}, ${selfDesc.characteristics}
+
+**What they said:**
+"${message}"
+
+**Help me with two things:**
+
+1. **Translation**: ${translationStyle}, tell me what they really mean
+
+2. **How to respond**: Give me 3 natural replies, like casual conversation, ${replyExamples.style}
+
+**Reply requirements:**
+- Natural as daily chat with friends, conversational tone
+- Not formal, not like customer service or official responses
+- 3 different lengths and tones: one brief, one medium, one detailed
+- Can use "hmm", "oh", "well", "really?" and other natural expressions
+- Reference this feeling: ${replyExamples.examples.join(', ')}
+- Avoid "I think", "I suggest", formal expressions
+
+**Important: Output strict JSON format, avoid quotes inside strings, use other punctuation instead**
+{
+  "translation": "What they really want to express...",
+  "suggestions": [
+    "Specific reply 1",
+    "Specific reply 2", 
+    "Specific reply 3"
   ]
 }`;
 }
@@ -68,7 +154,7 @@ export async function translateMessage(request: TranslationRequest): Promise<Tra
   }
 
   try {
-    const response = await fetch('https://api.deepseek.com/chat/completions', {
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -79,16 +165,18 @@ export async function translateMessage(request: TranslationRequest): Promise<Tra
         messages: [
           {
             role: 'user',
-            content: buildPrompt(request.message, request.selfType, request.targetType)
+            content: buildPrompt(request.message, request.selfType, request.targetType, request.language)
           }
         ],
-        temperature: 0.7,
+        temperature: 0.8,
         max_tokens: 1000,
         stream: false
       })
     });
 
     if (!response.ok) {
+      const errorText = await response.text();
+      console.error('API错误响应:', errorText);
       throw new Error(`API 请求失败: ${response.status} ${response.statusText}`);
     }
 
@@ -99,9 +187,29 @@ export async function translateMessage(request: TranslationRequest): Promise<Tra
       throw new Error('API 返回内容为空');
     }
 
+    // 处理可能被包装在 markdown 代码块中的 JSON
+    let cleanContent = content;
+    if (content.includes('```json')) {
+      // 提取 ```json 和 ``` 之间的内容
+      const jsonStart = content.indexOf('```json') + 7;
+      const jsonEnd = content.indexOf('```', jsonStart);
+      if (jsonEnd !== -1) {
+        cleanContent = content.substring(jsonStart, jsonEnd).trim();
+      } else {
+        cleanContent = content.replace(/```json\n?/g, '').replace(/\n?```/g, '');
+      }
+    }
+    
+    // 清理中文引号和其他特殊字符
+    cleanContent = cleanContent
+      .replace(/"/g, '"')  // 中文左引号
+      .replace(/"/g, '"')  // 中文右引号
+      .replace(/'/g, "'")  // 中文左单引号
+      .replace(/'/g, "'"); // 中文右单引号
+
     // 尝试解析 JSON 响应
     try {
-      const parsed = JSON.parse(content);
+      const parsed = JSON.parse(cleanContent);
       return {
         translation: parsed.translation || '解析错误：未找到翻译内容',
         suggestions: parsed.suggestions || ['生成建议时出现错误']
@@ -109,11 +217,13 @@ export async function translateMessage(request: TranslationRequest): Promise<Tra
     } catch (parseError) {
       // 如果 JSON 解析失败，尝试从文本中提取内容
       console.warn('JSON 解析失败，尝试文本解析:', parseError);
+      console.log('原始API返回内容:', content);
+      console.log('清理后内容:', cleanContent);
       return {
-        translation: content.includes('translation') 
-          ? content.split('translation')[1]?.split('suggestions')[0]?.replace(/[:"]/g, '').trim() || content
-          : content,
-        suggestions: ['请重新尝试获取回复建议']
+        translation: cleanContent.includes('translation') 
+          ? cleanContent.split('translation')[1]?.split('suggestions')[0]?.replace(/[:"]/g, '').trim() || cleanContent
+          : cleanContent,
+        suggestions: ['AI回复格式异常，请重新尝试']
       };
     }
   } catch (error) {

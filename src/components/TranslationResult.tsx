@@ -29,11 +29,11 @@ export const TranslationResult: React.FC<TranslationResultProps> = ({
   if (!originalMessage && !isLoading) return null;
 
   return (
-          <div className="space-y-4">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Sparkles size={16} className="text-emerald-400" />
-          <h3 className="text-sm font-semibold text-gray-200">翻译结果</h3>
+      <div className="flex items-center gap-2">
+        <Sparkles size={16} className="text-emerald-400" />
+        <h3 className="text-sm font-semibold text-gray-200">翻译结果</h3>
         </div>
         <div className="text-xs text-gray-500 bg-slate-700/30 px-2 py-1 rounded-full">
           真人视角解读

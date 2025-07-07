@@ -15,7 +15,21 @@ export const ReplySuggestions: React.FC<ReplySuggestionsProps> = ({
   const [copiedIndex, setCopiedIndex] = React.useState<number | null>(null);
 
   const handleCopy = async (text: string, index: number) => {
-    await navigator.clipboard.writeText(text);
+    // 提取实际的回复话术，去掉括号内的解释
+    let cleanText = text;
+    
+    // 处理包含引号的情况，保留到引号结束
+    if (text.includes('「') && text.includes('」')) {
+      const start = text.indexOf('「');
+      const end = text.indexOf('」');
+      cleanText = text.substring(start, end + 1);
+    }
+    // 处理普通文本，去掉最后的括号解释
+    else {
+      cleanText = text.replace(/\s*\([^)]*\)\s*$/, '').trim();
+    }
+    
+    await navigator.clipboard.writeText(cleanText);
     setCopiedIndex(index);
     setTimeout(() => setCopiedIndex(null), 2000);
   };

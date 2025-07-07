@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Send, Loader2, MessageSquare, Lightbulb } from 'lucide-react';
+import { Language, translations } from '../config/i18n';
 
 interface MessageInputProps {
   message: string;
   onMessageChange: (message: string) => void;
   onSubmit: () => void;
   isLoading: boolean;
+  language: Language;
   placeholder?: string;
 }
 
@@ -14,17 +16,26 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   onMessageChange,
   onSubmit,
   isLoading,
-  placeholder = "输入对方的话...",
+  language,
+  placeholder,
 }) => {
   const [showExamples, setShowExamples] = useState(false);
+  const t = translations[language];
 
-  const examples = [
+  const examples = language === 'zh' ? [
     "我觉得这个决定不太好，总感觉哪里不对劲...",
     "这个方案效率不高，我们应该重新考虑实施步骤",
     "你这样说让我很难过，感觉你不理解我的想法",
     "从成本效益角度看，这个投入产出比不合理",
     "我们能不能换个方式？我担心这样会影响团队关系",
     "数据显示这个趋势有问题，建议暂停执行"
+  ] : [
+    "I don't think this decision feels right, something seems off...",
+    "This approach isn't efficient, we should reconsider the implementation",
+    "What you said makes me sad, I feel like you don't understand my thoughts",
+    "From a cost-benefit perspective, this ROI doesn't make sense",
+    "Can we try a different way? I'm worried this might affect team relationships",
+    "The data shows this trend is problematic, suggest we pause execution"
   ];
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -42,23 +53,23 @@ export const MessageInput: React.FC<MessageInputProps> = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <MessageSquare size={16} className="text-purple-400" />
-          <label className="text-sm font-semibold text-gray-200">对方的话</label>
-        </div>
+      <div className="flex items-center gap-2">
+        <MessageSquare size={16} className="text-purple-400" />
+        <label className="text-sm font-semibold text-gray-200">{t.messageInput}</label>
+      </div>
         <button
           onClick={() => setShowExamples(!showExamples)}
           className="flex items-center gap-1 text-xs text-gray-400 hover:text-purple-400 transition-colors duration-200"
         >
           <Lightbulb size={12} />
-          示例
+          {t.example}
         </button>
       </div>
 
       {/* 示例列表 */}
       {showExamples && (
         <div className="bg-slate-700/30 rounded-lg p-3 space-y-2">
-          <p className="text-xs text-gray-400 mb-2">点击使用示例：</p>
+          <p className="text-xs text-gray-400 mb-2">{language === 'zh' ? '点击使用示例：' : 'Click to use examples:'}</p>
           {examples.map((example, index) => (
             <button
               key={index}
@@ -77,7 +88,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
             value={message}
             onChange={(e) => onMessageChange(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={placeholder}
+            placeholder={placeholder || (language === 'zh' ? '输入对方的话...' : 'Enter their message...')}
             className="w-full px-4 py-4 bg-transparent text-gray-200 placeholder-gray-500 resize-none focus:outline-none rounded-xl"
             rows={4}
             disabled={isLoading}
@@ -102,7 +113,7 @@ export const MessageInput: React.FC<MessageInputProps> = ({
                 ) : (
                   <Send size={16} />
                 )}
-                翻译
+                {t.translate}
               </div>
             </button>
           </div>

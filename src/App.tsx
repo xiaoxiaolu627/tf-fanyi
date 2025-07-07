@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RefreshCw, Sparkles } from 'lucide-react';
 import { Logo } from './components/Logo';
 import { TypeSelector } from './components/TypeSelector';
@@ -8,8 +8,10 @@ import { ReplySuggestions } from './components/ReplySuggestions';
 import { ConversationHistory } from './components/ConversationHistory';
 import { UsageGuide } from './components/UsageGuide';
 import { NetworkStatus } from './components/NetworkStatus';
+import { LanguageSelector } from './components/LanguageSelector';
 import { translateMessage } from './services/deepseekApi';
 import type { TranslationResponse } from './config/api';
+import { Language, translations, detectLanguage, saveLanguage } from './config/i18n';
 
 interface ConversationItem {
   id: string;
@@ -22,6 +24,7 @@ interface ConversationItem {
 }
 
 function App() {
+  const [language, setLanguage] = useState<Language>('zh');
   const [selfType, setSelfType] = useState<'T' | 'F'>('T');
   const [targetType, setTargetType] = useState<'T' | 'F'>('F');
   const [message, setMessage] = useState('');
@@ -30,6 +33,19 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [error, setError] = useState<string>('');
+
+  // 初始化语言设置
+  useEffect(() => {
+    const detectedLanguage = detectLanguage();
+    setLanguage(detectedLanguage);
+  }, []);
+
+  const handleLanguageChange = (newLanguage: Language) => {
+    setLanguage(newLanguage);
+    saveLanguage(newLanguage);
+  };
+
+  const t = translations[language];
 
   const handleTranslate = async () => {
     if (!message.trim()) return;
@@ -41,7 +57,8 @@ function App() {
       const result: TranslationResponse = await translateMessage({
         message: message.trim(),
         selfType,
-        targetType
+        targetType,
+        language
       });
       
       setTranslation(result.translation);
@@ -60,7 +77,7 @@ function App() {
       
       setConversations(prev => [newConversation, ...prev].slice(0, 10));
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '翻译失败，请重试';
+      const errorMessage = err instanceof Error ? err.message : t.errorMessage;
       setError(errorMessage);
       console.error('Translation error:', err);
     } finally {
@@ -94,21 +111,27 @@ function App() {
               <Logo />
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 via-purple-400 to-amber-400 bg-clip-text text-transparent">
-                  T/F 沟通翻译器
+                  {t.title}
                 </h1>
                 <p className="text-sm text-gray-400 mt-1">
-                  用真人视角翻译，让思考型和情感型更好地理解彼此 
+                  {t.subtitle}
                   <Sparkles size={14} className="inline ml-1 text-yellow-400" />
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleReset}
-              className="group flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-white transition-all duration-300 hover:bg-slate-800/50 rounded-lg border border-slate-700/50 hover:border-slate-600/50"
-            >
-              <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-500" />
-              重置
-            </button>
+            <div className="flex items-center gap-3">
+              <LanguageSelector 
+                currentLanguage={language}
+                onLanguageChange={handleLanguageChange}
+              />
+              <button
+                onClick={handleReset}
+                className="group flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-white transition-all duration-300 hover:bg-slate-800/50 rounded-lg border border-slate-700/50 hover:border-slate-600/50"
+              >
+                <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-500" />
+                {t.reset}
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -121,18 +144,20 @@ function App() {
             <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
               <h2 className="text-lg font-semibold text-gray-200 mb-6 flex items-center gap-2">
                 <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-amber-400 rounded-full"></div>
-                设置类型
+                {t.typeSettings}
               </h2>
               <div className="space-y-6">
                 <TypeSelector
-                  label="我的类型"
+                  label={t.myType}
                   selectedType={selfType}
                   onTypeChange={setSelfType}
+                  language={language}
                 />
                 <TypeSelector
-                  label="对方类型"
+                  label={t.targetType}
                   selectedType={targetType}
                   onTypeChange={setTargetType}
+                  language={language}
                 />
               </div>
             </div>
@@ -143,10 +168,12 @@ function App() {
                 onMessageChange={setMessage}
                 onSubmit={handleTranslate}
                 isLoading={isLoading}
+                language={language}
               />
             </div>
 
-            <div className="bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
+            {/* 桌面端显示对话历史 */}
+            <div className="hidden lg:block bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
               <ConversationHistory
                 conversations={conversations}
                 onClear={handleClearHistory}
@@ -174,29 +201,37 @@ function App() {
                 targetType={targetType}
               />
             </div>
+
+            {/* 移动端显示对话历史 - 在智能回复建议下方 */}
+            <div className="lg:hidden bg-slate-800/50 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
+              <ConversationHistory
+                conversations={conversations}
+                onClear={handleClearHistory}
+              />
+            </div>
           </div>
         </div>
       </main>
 
-            {/* Footer */}
+      {/* Footer */}
       <footer className="relative bg-slate-900/80 backdrop-blur-xl border-t border-slate-700/50 mt-16">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <div className="text-center space-y-4">
             <div className="flex items-center justify-center gap-2 mb-2">
               <div className="w-1 h-1 bg-emerald-400 rounded-full"></div>
               <p className="text-sm text-gray-400">
-                让 MBTI 中的思考型 (T) 和情感型 (F) 沟通更顺畅
+                {t.footerText}
               </p>
               <div className="w-1 h-1 bg-amber-400 rounded-full"></div>
             </div>
             <p className="text-xs text-gray-500">
-              基于 <a href="https://api-docs.deepseek.com/zh-cn/" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 underline">DeepSeek AI</a> 的实时翻译和回复建议 • 让理解成为沟通的桥梁
+              {t.poweredBy} <a href="https://api-docs.deepseek.com/zh-cn/" target="_blank" rel="noopener noreferrer" className="text-purple-400 hover:text-purple-300 underline">DeepSeek AI</a> {language === 'zh' ? '的实时翻译和回复建议' : 'real-time translation and reply suggestions'} • {t.bridgeCommunication}
             </p>
             {conversations.length > 0 && (
               <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
-                <span>本次会话: {conversations.length} 次翻译</span>
+                <span>{t.sessionStats}: {conversations.length} {t.translationsCount}</span>
                 <span>•</span>
-                <span>最近更新: {conversations[0]?.timestamp.toLocaleTimeString()}</span>
+                <span>{t.lastUpdate}: {conversations[0]?.timestamp.toLocaleTimeString()}</span>
               </div>
             )}
           </div>
