@@ -1,5 +1,6 @@
 import React from 'react';
-import { History, Trash2, Clock } from 'lucide-react';
+import { Clock, Trash2 } from 'lucide-react';
+import { Language, translations } from '../config/i18n';
 
 interface ConversationItem {
   id: string;
@@ -14,27 +15,41 @@ interface ConversationItem {
 interface ConversationHistoryProps {
   conversations: ConversationItem[];
   onClear: () => void;
+  language: Language;
 }
 
 export const ConversationHistory: React.FC<ConversationHistoryProps> = ({
   conversations,
   onClear,
+  language,
 }) => {
-  if (!conversations.length) return null;
+  const t = translations[language];
+
+  if (conversations.length === 0) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-gray-200">{t.conversationHistory}</h3>
+        </div>
+        <div className="text-center py-8">
+          <p className="text-gray-500 text-sm">
+            {language === 'zh' ? '暂无对话记录' : 'No conversation history'}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <History size={16} className="text-purple-400" />
-          <h3 className="text-sm font-semibold text-gray-200">对话历史</h3>
-        </div>
+        <h3 className="text-sm font-semibold text-gray-200">{t.conversationHistory}</h3>
         <button
           onClick={onClear}
-          className="group flex items-center gap-1 px-3 py-1.5 text-xs text-gray-400 hover:text-red-400 transition-colors duration-200 hover:bg-red-500/10 rounded-lg border border-transparent hover:border-red-500/20"
+          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-red-400 transition-colors hover:bg-slate-700/30 rounded"
         >
           <Trash2 size={12} />
-          清空
+          {t.clear}
         </button>
       </div>
 

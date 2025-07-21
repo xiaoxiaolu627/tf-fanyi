@@ -207,6 +207,7 @@ function App() {
               <ConversationHistory
                 conversations={conversations}
                 onClear={handleClearHistory}
+                language={language}
               />
             </div>
           </div>
@@ -222,6 +223,7 @@ function App() {
                 targetType={targetType}
                 error={error}
                 onShare={handleShare}
+                language={language}
               />
             </div>
 
@@ -230,6 +232,7 @@ function App() {
                 suggestions={suggestions}
                 isLoading={isLoading}
                 targetType={targetType}
+                language={language}
               />
             </div>
 
@@ -238,6 +241,7 @@ function App() {
               <ConversationHistory
                 conversations={conversations}
                 onClear={handleClearHistory}
+                language={language}
               />
             </div>
           </div>
